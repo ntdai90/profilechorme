@@ -1,0 +1,59 @@
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
+import time
+
+# Đường dẫn tới tệp ChromeDriver trên máy của bạn
+chrome_driver_path = 'chromedriver.exe'
+
+# Danh sách các profile Chrome khác nhau
+profiles = [
+    'Profile 1',
+    'Profile 2',
+    'Profile 3'
+]
+
+# Các URL để truy cập tương ứng với các profile
+urls = [
+    'https://dantri.com.vn',
+    'https://linkhay.com',
+    'https://ngoisao.net'
+]
+
+# Các cổng debug riêng cho từng profile
+ports = [9222, 9223, 9224]
+
+# Hàm khởi tạo trình duyệt với một profile cụ thể và cổng debug riêng
+def open_chrome_profile(profile_name, url, port):
+    chrome_options = Options()
+    chrome_options.add_argument(r'user-data-dir=C:\Users\Admin\AppData\Local\Google\Chrome\User Data')
+    chrome_options.add_argument(f'--profile-directory={profile_name}')
+    chrome_options.add_argument(f'--remote-debugging-port={port}')  # Cổng debug riêng cho mỗi profile
+
+    # Các tùy chọn để giảm khả năng xảy ra lỗi
+    chrome_options.add_argument('--no-sandbox')
+    chrome_options.add_argument('--disable-dev-shm-usage')
+    chrome_options.add_argument('--disable-extensions')
+    chrome_options.add_argument('--disable-gpu')  # Thêm tùy chọn này nếu gặp lỗi với GPU
+
+    service = Service(chrome_driver_path)
+    driver = webdriver.Chrome(service=service, options=chrome_options)
+    driver.get(url)
+    return driver
+
+# Mở các profile Chrome
+drivers = []
+for profile, url, port in zip(profiles, urls, ports):
+    try:
+        driver = open_chrome_profile(profile, url, port)
+        drivers.append(driver)
+        time.sleep(2)  # Tạm dừng giữa các lần mở
+    except Exception as e:
+        print(f"Không thể mở profile {profile} với URL {url}: {e}")
+
+# Giữ các cửa sổ trình duyệt mở
+input("Nhấn Enter để đóng các trình duyệt...")
+
+# Đóng tất cả các trình duyệt
+for driver in drivers:
+    driver.quit()
